@@ -1,8 +1,7 @@
 package com.example.productservice.service;
 
-import com.example.productservice.exception.NoItemsFoundException;
 import com.example.productservice.exception.StockNotChangeableException;
-import com.example.productservice.model.ItemDTO;
+import com.example.productservice.model.ItemQuantityDTO;
 import com.example.productservice.model.entity.Item;
 import com.example.productservice.model.order.ItemDetailDTO;
 import com.example.productservice.model.order.OrderDTO;
@@ -62,10 +61,13 @@ public class AmqpConsumer {
 
     private List<ItemDetailDTO> fetchItemDTOs(HashMap<Integer, Integer> itemsToOrderWithAmount) {
         List<Integer> idsOdUnavailableItems = this.productService.fetchUnavailableItems(itemsToOrderWithAmount);
-        if(!idsOdUnavailableItems.isEmpty())
-            throw new StockNotChangeableException();
-
         List<ItemDetailDTO> itemsToPayFor = new ArrayList<>();
+
+        if(!idsOdUnavailableItems.isEmpty()) {
+            throw new StockNotChangeableException();
+        }
+
+
         for(Integer id: itemsToOrderWithAmount.keySet()) {
             Item fetchedItem = this.productService.fetchSingleProduct(id);
             fetchedItem.setQuantity(itemsToOrderWithAmount.get(id));
@@ -73,5 +75,20 @@ public class AmqpConsumer {
         }
 
         return itemsToPayFor;
+    }
+
+    @RabbitListener(queues = "#{resetStockQueue.name}")
+    public void resetStockOfItems(OrderDTO orderDetails, org.springframework.amqp.core.Message message) {
+        String correlationId = message.getMessageProperties().getCorrelationId();
+
+        try {
+            ItemQuantityDTO orderedItems = orderDetails.getOrderedItems();
+            this.productService.addStockOfItem(orderedItems);
+            logger.info("Stock of items reset: correlation id: {}", correlationId);
+        } catch (Exception e) {
+            logger.warn("Stock of order could not be reset: correlation id: {}", correlationId, e);
+
+            throw new AmqpRejectAndDontRequeueException("Item stock reset failed");
+        }
     }
 }

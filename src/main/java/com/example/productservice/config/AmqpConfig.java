@@ -16,9 +16,16 @@ public class AmqpConfig {
 
     static final String updateStockQueue = "update-stock-queue";
 
+    static final String resetStockQueue = "reset-stock-queue";
+
     @Bean
     Queue updateStockQueue() {
         return new Queue(updateStockQueue, true);
+    }
+
+    @Bean
+    Queue resetStockQueue() {
+        return new Queue(resetStockQueue, true);
     }
 
     @Bean
@@ -27,8 +34,13 @@ public class AmqpConfig {
     }
 
     @Bean
-    Binding addCartItemBinding(Queue addQueue, TopicExchange exchange) {
-        return BindingBuilder.bind(addQueue).to(exchange).with("order.items.queried");
+    Binding updateStockBinding(Queue updateStockQueue, TopicExchange exchange) {
+        return BindingBuilder.bind(updateStockQueue).to(exchange).with("order.items.queried");
+    }
+
+    @Bean
+    Binding resetStockBinding(Queue resetStockQueue, TopicExchange exchange) {
+        return BindingBuilder.bind(resetStockQueue).to(exchange).with("payment.failed");
     }
 
     @Bean

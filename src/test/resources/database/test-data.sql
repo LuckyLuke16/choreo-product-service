@@ -1,0 +1,2 @@
+INSERT INTO items (id, quantity, name, description, price, author, genre) VALUES (1, 5, 'Alles muss versteckt sein', 'Steckt in jedem Menschen ein Mörder? In Gedanken hat Marie schon erschlagen, erwürgt und zerstückelt.', 9.95, 'Wiebke Lorenz', 'CRIME');
+INSERT INTO items (id, quantity, name, description, price, author, genre) VALUES (2, 3, 'Der Untergang des Universums', 'Milliarden Jahre lang hat sich die unsterblich gewordene Menschheit in der ganzen Galaxis ausgebreitet.', 14.99, 'Brandon Q. Morris', 'SCIENCE_FICTION');
